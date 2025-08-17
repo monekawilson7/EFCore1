@@ -8,8 +8,12 @@ namespace EFCore1.models
 {
     public class CourseInst
     {
-        public int Inst_ID { get; set; }
-        public int Course_ID { get; set; }
-        public string? Evaluate { get; set; }
+        public int Inst_Id { get; set; }
+        public int Course_Id { get; set; }
+        public string Evaluate { get; set; }
+
+        public Instructor Instructor { get; set; }
+        public Course Course { get; set; }
     }
 }
+

@@ -10,58 +10,52 @@ namespace EFCore1.context
 {
     internal class ITIContext : DbContext
     {
-        public DbSet<Student> Students => Set<Student>();
-        public DbSet<Topic> Topics => Set<Topic>();
-        public DbSet<Department> Departments => Set<Department>();
-        public DbSet<Course> Courses => Set<Course>();
-        public DbSet<Instructor> Instructors => Set<Instructor>();
-        public DbSet<StudCourse> Stud_Course => Set<StudCourse>();
-        public DbSet<CourseInst> Course_inst => Set<CourseInst>();
+        public DbSet<Instructor> Instructors { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Topic> Topics { get; set; }
+        public DbSet<StudCourse> StudCourses { get; set; }
+        public DbSet<CourseInst> CourseInsts { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=MyDbName;Trusted_Connection=True;");
-        }
-        protected override void OnModelCreating(ModelBuilder modelBuilder) { 
-        modelBuilder.Entity<Course>(e =>
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            e.ToTable("Course");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Name)
-                .IsRequired()
-                .HasMaxLength(100)
-                .IsUnicode(false);          
-            e.Property(x => x.Description)
-                .HasMaxLength(200)
-                .IsUnicode(false);
-        });
-            modelBuilder.Entity<Instructor>(e =>
-            {
-                e.ToTable("Instructor");
-                e.HasKey(x => x.Id);
-                e.Property(x => x.Name)
-                    .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-                e.Property(x => x.Address)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-            });
-
-            modelBuilder.Entity<StudCourse>(e =>
-            {
-                e.ToTable("Stud_Course");
-                e.HasKey(x => new { x.Stud_ID, x.Course_ID });
-            });
-
-            modelBuilder.Entity<CourseInst>(e =>
-            {
-                e.ToTable("Course_inst");
-                e.HasKey(x => new { x.Inst_ID, x.Course_ID });
-                e.Property(x => x.Evaluate)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-            });
+            optionsBuilder.UseSqlServer(@"Server=.;Database=ITIDb;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // StudCourse PK
+            modelBuilder.Entity<StudCourse>()
+                .HasKey(sc => new { sc.Stud_Id, sc.Course_Id });
+
+            // CourseInst PK
+            modelBuilder.Entity<CourseInst>()
+                .HasKey(ci => new { ci.Inst_Id, ci.Course_Id });
+
+            // Department -> Instructor (Manager)
+            modelBuilder.Entity<Department>()
+                .HasOne(d => d.Manger)
+                .WithMany()
+                .HasForeignKey(d => d.Ins_Id);
+
+            // Student -> Department
+            modelBuilder.Entity<Student>()
+                .HasOne(s => s.Department)
+                .WithMany(d => d.Students)
+                .HasForeignKey(s => s.Dep_Id);
+
+            // Instructor -> Department
+            modelBuilder.Entity<Instructor>()
+                .HasOne(i => i.Department)
+                .WithMany(d => d.Instructors)
+                .HasForeignKey(i => i.Dept_Id);
+
+            // Course -> Topic
+            modelBuilder.Entity<Course>()
+                .HasOne(c => c.Topic)
+                .WithMany(t => t.Courses)
+                .HasForeignKey(c => c.Top_Id);
+        }
     }
 }
